@@ -694,39 +694,6 @@ class Day {
       uv.hashCode;
 }
 
-// @immutable
-// class Conditions {
-//   const Conditions({
-//     required this.text,
-//     required this.icon,
-//     required this.code,
-//   });
-
-//   final String text;
-//   final String icon;
-//   final int code;
-
-//   factory Conditions.fromJson(Map<String, dynamic> json) =>
-//       Conditions(text: json['text'].toString(), icon: json['icon'].toString(), code: json['code'] as int);
-
-//   Map<String, dynamic> toJson() => {'text': text, 'icon': icon, 'code': code};
-
-//   Conditions clone() => Conditions(text: text, icon: icon, code: code);
-
-//   Conditions copyWith({String? text, String? icon, int? code}) => Conditions(
-//         text: text ?? this.text,
-//         icon: icon ?? this.icon,
-//         code: code ?? this.code,
-//       );
-
-//   @override
-//   bool operator ==(Object other) =>
-//       identical(this, other) || other is Conditions && text == other.text && icon == other.icon && code == other.code;
-
-//   @override
-//   int get hashCode => text.hashCode ^ icon.hashCode ^ code.hashCode;
-// }
-
 @immutable
 class Astro {
   const Astro({
@@ -1147,37 +1114,3 @@ class Hour {
       gustKph.hashCode ^
       uv.hashCode;
 }
-
-// @immutable
-// class ConditionCurrent {
-//   const ConditionCurrent({
-//     required this.text,
-//     required this.icon,
-//     required this.code,
-//   });
-
-//   final String text;
-//   final String icon;
-//   final int code;
-
-//   factory ConditionCurrent.fromJson(Map<String, dynamic> json) =>
-//       ConditionCurrent(text: json['text'].toString(), icon: json['icon'].toString(), code: json['code'] as int);
-
-//   Map<String, dynamic> toJson() => {'text': text, 'icon': icon, 'code': code};
-
-//   ConditionCurrent clone() => ConditionCurrent(text: text, icon: icon, code: code);
-
-//   ConditionCurrent copyWith({String? text, String? icon, int? code}) => ConditionCurrent(
-//         text: text ?? this.text,
-//         icon: icon ?? this.icon,
-//         code: code ?? this.code,
-//       );
-
-//   @override
-//   bool operator ==(Object other) =>
-//       identical(this, other) ||
-//       other is ConditionCurrent && text == other.text && icon == other.icon && code == other.code;
-
-//   @override
-//   int get hashCode => text.hashCode ^ icon.hashCode ^ code.hashCode;
-// }

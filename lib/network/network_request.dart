@@ -10,11 +10,9 @@ const country = 'Vietnam';
 const location = 'hanoi';
 
 class NetworkRequest {
-  static const String url = 'https://api.openweathermap.org/data/2.5/weather?q=$location&appid=$apiKey';
-  static const String forecastUrl =
-      'https://api.weatherapi.com/v1/forecast.json?key=$apiKey_01&q=$country&days=10&aqi=no&alerts=no';
+  String url = 'https://api.openweathermap.org/data/2.5/weather?q=$location&appid=$apiKey';
 
-  static Future<Weathers> fetchWeathers() async {
+  Future<Weathers> fetchWeathers() async {
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       return Weathers.fromJson(jsonDecode(response.body));
@@ -27,10 +25,9 @@ class NetworkRequest {
 }
 
 class ForecastsNetworkRequest {
-  static const String forecastUrl =
-      'https://api.weatherapi.com/v1/forecast.json?key=$apiKey_01&q=$country&days=8&aqi=no&alerts=no';
+  String forecastUrl = 'https://api.weatherapi.com/v1/forecast.json?key=$apiKey_01&q=$country&days=8&aqi=no&alerts=no';
 
-  static Future<Forecasts> fetchForecasts() async {
+  Future<Forecasts> fetchForecasts() async {
     final response = await http.get(Uri.parse(forecastUrl));
     if (response.statusCode == 200) {
       return Forecasts.fromJson(jsonDecode(response.body));

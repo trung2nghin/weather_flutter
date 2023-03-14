@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../controllers/weather_controller.dart';
 import '../models/forecasts.dart';
+import '../models/weather_state.dart';
 import '../network/network_request.dart';
 
-class ForecastPage extends StatefulWidget {
+final weatherProvider = StateNotifierProvider<WeatherController, WeatherState>((ref) => WeatherController());
+
+class ForecastPage extends ConsumerStatefulWidget {
   const ForecastPage({super.key});
 
   @override
-  State<ForecastPage> createState() => _ForecastPageState();
+  ForecastPageState createState() => ForecastPageState();
 }
 
-class _ForecastPageState extends State<ForecastPage> {
+class ForecastPageState extends ConsumerState<ForecastPage> {
   Forecasts? forecast;
   int? timeNow = 0;
   final now = DateTime.now();
@@ -20,14 +25,12 @@ class _ForecastPageState extends State<ForecastPage> {
   void initState() {
     super.initState();
     fetchWeathers();
+    filterHour();
   }
 
   void fetchWeathers() async {
-    final newWorkForecast = await ForecastsNetworkRequest.fetchForecasts();
-
-    setState(() {
-      forecast = newWorkForecast;
-    });
+    await ForecastsNetworkRequest().fetchForecasts();
+    ref.read(weatherProvider.notifier).addWeather();
   }
 
   void filterHour() {
@@ -37,6 +40,8 @@ class _ForecastPageState extends State<ForecastPage> {
 
   @override
   Widget build(BuildContext context) {
+    final weatherData = ref.watch(weatherProvider);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -59,135 +64,137 @@ class _ForecastPageState extends State<ForecastPage> {
           width: MediaQuery.of(context).size.width,
           fit: BoxFit.cover,
         ),
-        Column(
-          children: [
-            const SizedBox(
-              height: 120,
-            ),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.4),
-                borderRadius: const BorderRadius.all(
-                  Radius.circular(12),
-                ),
-              ),
-              width: double.infinity,
-              height: 380,
-              margin: const EdgeInsets.symmetric(horizontal: 24),
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Column(
+        weatherData.isLoading == true
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
                 children: [
+                  const SizedBox(
+                    height: 120,
+                  ),
                   Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.4),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(12),
+                      ),
+                    ),
                     width: double.infinity,
-                    margin: const EdgeInsets.only(left: 16),
-                    child: Row(
+                    height: 380,
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Column(
                       children: [
-                        const Icon(
-                          Icons.calendar_month_outlined,
-                          size: 18,
-                          color: Color.fromARGB(255, 204, 204, 204),
-                        ),
-                        const SizedBox(
-                          width: 6,
-                        ),
-                        Text(
-                          '8-day forcast'.toUpperCase(),
-                          style: const TextStyle(
-                            color: Color.fromARGB(255, 204, 204, 204),
-                            fontWeight: FontWeight.w400,
-                            fontSize: 13.5,
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(left: 16),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.calendar_month_outlined,
+                                size: 18,
+                                color: Color.fromARGB(255, 204, 204, 204),
+                              ),
+                              const SizedBox(
+                                width: 6,
+                              ),
+                              Text(
+                                '8-day forcast'.toUpperCase(),
+                                style: const TextStyle(
+                                  color: Color.fromARGB(255, 204, 204, 204),
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 13.5,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
+                        const Divider(
+                          thickness: 1,
+                          color: Colors.white24,
+                        ),
+                        Expanded(
+                          child: SizedBox(
+                            height: 560,
+                            child: ListView.builder(
+                              padding: EdgeInsets.zero,
+                              primary: false,
+                              itemCount: weatherData.forecast?.forecast.forecastday.length,
+                              scrollDirection: Axis.vertical,
+                              itemBuilder: ((context, index) => SizedBox(
+                                    width: (MediaQuery.of(context).size.width - 48),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                        children: [
+                                          SizedBox(
+                                            width: 50,
+                                            child: Text(
+                                              '${weatherData.forecast?.forecast.forecastday[index].date.split('-')[2] ?? ''} - ${weatherData.forecast?.forecast.forecastday[index].date.split('-')[1] ?? ''}',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 15.5,
+                                                fontFamily: 'HelveticaNeueBd',
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          const Icon(
+                                            Icons.cloud,
+                                            color: Colors.white,
+                                          ),
+                                          Text(
+                                            '${weatherData.forecast?.forecast.forecastday[index].day.mintempC ?? ''}°',
+                                            style: const TextStyle(
+                                              color: Color.fromARGB(255, 204, 204, 204),
+                                              fontSize: 16,
+                                              fontFamily: 'HelveticaNeueBd',
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Stack(children: [
+                                            Container(
+                                              height: 4,
+                                              width: 88,
+                                              decoration: BoxDecoration(
+                                                color: Colors.white24.withOpacity(0.2),
+                                                borderRadius: const BorderRadius.all(
+                                                  Radius.circular(16),
+                                                ),
+                                              ),
+                                            ),
+                                            Container(
+                                              height: 4,
+                                              width: 40,
+                                              decoration: const BoxDecoration(
+                                                color: Color.fromARGB(255, 255, 81, 33),
+                                                borderRadius: BorderRadius.all(
+                                                  Radius.circular(16),
+                                                ),
+                                              ),
+                                            ),
+                                          ]),
+                                          Text(
+                                            '${weatherData.forecast?.forecast.forecastday[index].day.maxtempC ?? ''}°',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontFamily: 'HelveticaNeueBd',
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )),
+                            ),
+                          ),
+                        )
                       ],
                     ),
                   ),
-                  const Divider(
-                    thickness: 1,
-                    color: Colors.white24,
-                  ),
-                  Expanded(
-                    child: SizedBox(
-                      height: 560,
-                      child: ListView.builder(
-                        padding: EdgeInsets.zero,
-                        primary: false,
-                        itemCount: forecast?.forecast.forecastday.length,
-                        scrollDirection: Axis.vertical,
-                        itemBuilder: ((context, index) => SizedBox(
-                              width: (MediaQuery.of(context).size.width - 48),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                  children: [
-                                    SizedBox(
-                                      width: 50,
-                                      child: Text(
-                                        '${forecast?.forecast.forecastday[index].date.split('-')[2] ?? ''} - ${forecast?.forecast.forecastday[index].date.split('-')[1] ?? ''}',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 15.5,
-                                          fontFamily: 'HelveticaNeueBd',
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                    const Icon(
-                                      Icons.cloud,
-                                      color: Colors.white,
-                                    ),
-                                    Text(
-                                      '${forecast?.forecast.forecastday[index].day.mintempC ?? ''}°',
-                                      style: const TextStyle(
-                                        color: Color.fromARGB(255, 204, 204, 204),
-                                        fontSize: 16,
-                                        fontFamily: 'HelveticaNeueBd',
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Stack(children: [
-                                      Container(
-                                        height: 4,
-                                        width: 88,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white24.withOpacity(0.2),
-                                          borderRadius: const BorderRadius.all(
-                                            Radius.circular(16),
-                                          ),
-                                        ),
-                                      ),
-                                      Container(
-                                        height: 4,
-                                        width: 40,
-                                        decoration: const BoxDecoration(
-                                          color: Color.fromARGB(255, 255, 81, 33),
-                                          borderRadius: BorderRadius.all(
-                                            Radius.circular(16),
-                                          ),
-                                        ),
-                                      ),
-                                    ]),
-                                    Text(
-                                      '${forecast?.forecast.forecastday[index].day.maxtempC ?? ''}°',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontFamily: 'HelveticaNeueBd',
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )),
-                      ),
-                    ),
-                  )
                 ],
               ),
-            ),
-          ],
-        ),
       ]),
     );
   }
